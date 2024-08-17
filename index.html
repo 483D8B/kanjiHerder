@@ -44,8 +44,8 @@
 
         .kanji-container {
             position: relative;
-            width: 12em;
-            height: 12em;
+            width: 25em;
+            height: 25em;
             border: 2px solid white;
             overflow: hidden;
         }
@@ -107,8 +107,10 @@
                 // Initialize the container
                 const zoo = document.getElementById('zoo');
 
+                const box = 1;
+
                 // Create 8 containers dynamically
-                for (let i = 1; i <= 8; i++) {
+                for (let i = 1; i <= box; i++) {
                     const leitnerBox = document.createElement('div');
                     leitnerBox.className = 'leitnerBox';
 
@@ -133,7 +135,7 @@
 
                 // Populate the kanji containers with the kanji from the data array
                 for (const [kanjiId, boxNumber] of Object.entries(lastObject)) {
-                    if (boxNumber <= 8) {
+                    if (boxNumber <= box + 1) {
                         const kanjiElement = document.createElement('div');
                         kanjiElement.className = 'kanji';
 
@@ -184,7 +186,6 @@
                     });
                 });
 
-                // Function to move the kanji smoothly with insect-like movement
                 function moveKanji() {
                     kanjiStates.forEach(state => {
                         const container = state.container;
@@ -199,15 +200,15 @@
                         if (state.x < 0) {
                             state.x = 0;
                             state.angle = Math.PI - state.angle;
-                        } else if (state.x > container.clientWidth - kanjiRect.width) {
-                            state.x = container.clientWidth - kanjiRect.width;
+                        } else if (state.x > containerRect.width - kanjiRect.width) {
+                            state.x = containerRect.width - kanjiRect.width;
                             state.angle = Math.PI - state.angle;
                         }
                         if (state.y < 0) {
                             state.y = 0;
                             state.angle = -state.angle;
-                        } else if (state.y > container.clientHeight - kanjiRect.height) {
-                            state.y = container.clientHeight - kanjiRect.height;
+                        } else if (state.y > containerRect.height - kanjiRect.height) {
+                            state.y = containerRect.height - kanjiRect.height;
                             state.angle = -state.angle;
                         }
 
@@ -227,6 +228,7 @@
                     // Request the next animation frame
                     requestAnimationFrame(moveKanji);
                 }
+
 
                 // Start the animation
                 moveKanji();
