@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .kanji-category {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1em;
+        }
+
+        .kanji-title {
+            margin-bottom: 0.25em;
+            font-size: 1.5em;
+            color: white;
+        }
+
+        .kanji-container {
+            position: relative;
+            width: 10em;
+            height: 10em;
+            border: 2px solid white;
+            overflow: hidden;
+        }
+
+        .kanji {
+            position: absolute;
+            font-size: 1em;
+            color: white;
+            transform-origin: center;
+            will-change: transform;
+            cursor: pointer;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1em;
+            width: 100%;
+        }
+
+        .slider {
+            width: 15em;
+            margin-top: 1em;
+        }
+
+        .slider-label {
+            font-size: 1em;
+        }
+    </style>
+    <title>Kanji Zoo</title>
+</head>
+<body>
+
+<div class="kanji-category">
+    <div class="kanji-title">Animals</div>
+    <div class="kanji-container" id="animals"></div>
+</div>
+
+<div class="kanji-category">
+    <div class="kanji-title">Plants</div>
+    <div class="kanji-container" id="plants"></div>
+</div>
+
+<div class="kanji-category">
+    <div class="kanji-title">Body Parts</div>
+    <div class="kanji-container" id="bodyParts"></div>
+</div>
+
+<div class="kanji-category">
+    <div class="kanji-title">Numbers</div>
+    <div class="kanji-container" id="numbers"></div>
+</div>
+
+<div class="slider-container">
+    <div class="slider-label">Speed: <span id="speedValue">0.3</span></div>
+    <input type="range" id="speedSlider" class="slider" min="0.1" max="5" step="0.1" value="0.3">
+</div>
+
+<script>
+    // Kanji data for different categories
+    const kanjiData = {
+        animals: ['犬', '猫', '鳥', '魚', '馬'],
+        plants: ['花', '木', '草', '竹', '葉'],
+        bodyParts: ['手', '足', '目', '耳', '口'],
+        numbers: ['一','二','三','四','五','六','七','八','九','十','千','万','百','億']
+    };
+
+    // Function to populate kanji containers
+    function populateKanji(category, kanjiArray) {
+        const container = document.getElementById(category);
+        if (!container) {
+            console.error(`Container with ID "${category}" not found.`);
+            return;
+        }
+        container.innerHTML = ''; // Clear existing content
+        kanjiArray.forEach(kanji => {
+            const el = document.createElement('div');
+            el.className = 'kanji';
+            el.textContent = kanji;
+            container.appendChild(el);
+        });
+    }
+
+    // Populate each category with corresponding kanji
+    Object.keys(kanjiData).forEach(category => {
+        populateKanji(category, kanjiData[category]);
+    });
+
+    // Reference to all kanji containers
+    const containers = document.querySelectorAll('.kanji-container');
+
+    // Create states for each kanji element within each container
+    const kanjiStates = [];
+    let globalSpeed = 0.3; // Initial speed
+
+    containers.forEach(container => {
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        const letterSize = 32; // Adjust based on font size
+
+        container.querySelectorAll('.kanji').forEach(kanji => {
+            const state = {
+                element: kanji,
+                container: container,
+                x: Math.random() * (containerWidth - letterSize),
+                y: Math.random() * (containerHeight - letterSize),
+                angle: Math.random() * 2 * Math.PI,
+                speed: Math.random() * 1 + 0.25, // Speed between 0.25 and 1.25
+                rotation: Math.random() * 20 - 10, // Random initial rotation
+                rotationSpeed: (Math.random() * 0.5 - 0.25) // Slower rotation change speed
+            };
+
+            // Set initial position and transformation
+            kanji.style.transform = `translate(${state.x}px, ${state.y}px) rotate(${state.rotation}deg)`;
+
+            kanjiStates.push(state);
+        });
+    });
+
+    // Function to move the kanji smoothly with insect-like movement
+    function moveKanji() {
+        kanjiStates.forEach(state => {
+            const container = state.container;
+            const containerRect = container.getBoundingClientRect();
+            const kanjiRect = state.element.getBoundingClientRect();
+
+            // Update position based on current angle and speed
+            state.x += Math.cos(state.angle) * state.speed * globalSpeed;
+            state.y += Math.sin(state.angle) * state.speed * globalSpeed;
+
+            // Ensure kanji bounce off the container walls correctly
+            if (state.x < 0) {
+                state.x = 0;
+                state.angle = Math.PI - state.angle;
+            } else if (state.x > container.clientWidth - kanjiRect.width) {
+                state.x = container.clientWidth - kanjiRect.width;
+                state.angle = Math.PI - state.angle;
+            }
+            if (state.y < 0) {
+                state.y = 0;
+                state.angle = -state.angle;
+            } else if (state.y > container.clientHeight - kanjiRect.height) {
+                state.y = container.clientHeight - kanjiRect.height;
+                state.angle = -state.angle;
+            }
+
+            // Gradually change angle for smoother movement
+            state.angle += (Math.random() - 0.5) * 0.1;
+
+            // Smoothly update rotation
+            state.rotation += state.rotationSpeed;
+            if (state.rotation > 15 || state.rotation < -15) {
+                state.rotationSpeed *= -1;
+            }
+
+            // Apply the new position and transformation
+            state.element.style.transform = `translate(${state.x}px, ${state.y}px) rotate(${state.rotation}deg)`;
+        });
+
+        // Request the next animation frame
+        requestAnimationFrame(moveKanji);
+    }
+
+    // Start the animation
+    moveKanji();
+
+    // Speed slider
+    const speedSlider = document.getElementById('speedSlider');
+    const speedValue = document.getElementById('speedValue');
+
+    speedSlider.addEventListener('input', (event) => {
+        globalSpeed = parseFloat(event.target.value);
+        speedValue.textContent = globalSpeed.toFixed(1);
+    });
+</script>
+
+</body>
+</html>
